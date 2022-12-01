@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { getTopValuesArray } from "../2022/1/day1-functions";
+import { getTopValuesArray } from "../day-1/day1-functions";
 
 describe("Get top values of an array", function () {
   const inputArray = [

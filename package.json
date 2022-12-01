@@ -4,8 +4,8 @@
   "description": "Advent assignments",
   "scripts": {
     "test": "npx tsc && mocha test/**/*.js",
-    "day1-a": "npx tsc && node ./2022/1/day1-a.js",
-    "day1-b": "npx tsc && node ./2022/1/day1-b.js"
+    "day1-a": "npx tsc && node day-1/day1-a.js",
+    "day1-b": "npx tsc && node day-1/day1-b.js"
   },
   "author": "",
   "license": "ISC",

@@ -45,5 +45,5 @@ function isAContainedByB(pairA, pairB) {
 function haveSomeOverlap(pairs) {
     const edgesA = pairs[0].split("-").map((value) => parseInt(value, 10));
     const edgesB = pairs[1].split("-").map((value) => parseInt(value, 10));
-    return (edgesA[1] >= edgesB[0] && edgesA[0] <= edgesB[1]);
+    return edgesA[1] >= edgesB[0] && edgesA[0] <= edgesB[1];
 }

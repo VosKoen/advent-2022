@@ -31,7 +31,8 @@ exports.runDay6b = runDay6b;
 function findFirstDistinctCharIndex(packet, noCharacters) {
     return packet
         .split("")
-        .findIndex((element, currentIndex, array) => currentIndex >= noCharacters - 1 && hasUniqueValues(array.slice(currentIndex - noCharacters + 1, currentIndex + 1)));
+        .findIndex((element, currentIndex, array) => currentIndex >= noCharacters - 1 &&
+        hasUniqueValues(array.slice(currentIndex - noCharacters + 1, currentIndex + 1)));
 }
 function hasUniqueValues(array) {
     return (array

@@ -1,5 +1,4 @@
 import parseInput from "../common/parseInput";
-import {cursorTo} from "readline";
 
 export async function runDay10a() {
   const inputArray = await parseInput(__dirname + "/input-10");

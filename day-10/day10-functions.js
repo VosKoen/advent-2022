@@ -44,17 +44,23 @@ exports.runDay10a = runDay10a;
 function runDay10b() {
     return __awaiter(this, void 0, void 0, function* () {
         const inputArray = yield (0, parseInput_1.default)(__dirname + "/input-10");
-        const resultScreen = [];
-        const screen = Array(6).fill(Array(40).fill('.'));
+        const screen = [
+            Array(40).fill("."),
+            Array(40).fill("."),
+            Array(40).fill("."),
+            Array(40).fill("."),
+            Array(40).fill("."),
+            Array(40).fill("."),
+        ];
         const cursor = [0, 0];
         let currentX = 1;
         inputArray.forEach((line) => {
             if (line === "noop") {
                 if (cursor[1] >= currentX - 1 && cursor[1] <= currentX + 1) {
-                    screen[cursor[0]][cursor[1]] = '#';
+                    screen[cursor[0]][cursor[1]] = "#";
                 }
                 else {
-                    screen[cursor[0]][cursor[1]] = '.';
+                    screen[cursor[0]][cursor[1]] = ".";
                 }
                 if (cursor[1] !== 39) {
                     cursor[1]++;
@@ -62,9 +68,6 @@ function runDay10b() {
                 else {
                     cursor[1] = 0;
                     if (cursor[0] !== 5) {
-                        resultScreen.push([...screen[cursor[0]]]);
-                        console.log(cursor);
-                        console.log(resultScreen);
                         cursor[0]++;
                     }
                     else {
@@ -74,10 +77,10 @@ function runDay10b() {
             }
             else {
                 if (cursor[1] >= currentX - 1 && cursor[1] <= currentX + 1) {
-                    screen[cursor[0]][cursor[1]] = '#';
+                    screen[cursor[0]][cursor[1]] = "#";
                 }
                 else {
-                    screen[cursor[0]][cursor[1]] = '.';
+                    screen[cursor[0]][cursor[1]] = ".";
                 }
                 if (cursor[1] !== 39) {
                     cursor[1]++;
@@ -85,9 +88,6 @@ function runDay10b() {
                 else {
                     cursor[1] = 0;
                     if (cursor[0] !== 5) {
-                        resultScreen.push([...screen[cursor[0]]]);
-                        console.log(cursor);
-                        console.log(resultScreen);
                         cursor[0]++;
                     }
                     else {
@@ -95,10 +95,10 @@ function runDay10b() {
                     }
                 }
                 if (cursor[1] >= currentX - 1 && cursor[1] <= currentX + 1) {
-                    screen[cursor[0]][cursor[1]] = '#';
+                    screen[cursor[0]][cursor[1]] = "#";
                 }
                 else {
-                    screen[cursor[0]][cursor[1]] = '.';
+                    screen[cursor[0]][cursor[1]] = ".";
                 }
                 if (cursor[1] !== 39) {
                     cursor[1]++;
@@ -106,9 +106,6 @@ function runDay10b() {
                 else {
                     cursor[1] = 0;
                     if (cursor[0] !== 5) {
-                        resultScreen.push([...screen[cursor[0]]]);
-                        console.log(cursor);
-                        console.log(resultScreen);
                         cursor[0]++;
                     }
                     else {
@@ -118,8 +115,7 @@ function runDay10b() {
                 currentX += parseInt(line.split(" ")[1], 10);
             }
         });
-        resultScreen.push([...screen[5]]);
-        resultScreen.forEach(line => console.log(line.join('')));
+        screen.forEach((line) => console.log(line.join("")));
     });
 }
 exports.runDay10b = runDay10b;

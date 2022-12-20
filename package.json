@@ -23,7 +23,9 @@
     "day9-a": "npx tsc && node day-9/day9-a.js",
     "day9-b": "npx tsc && node day-9/day9-b.js",
     "day10-a": "npx tsc && node day-10/day10-a.js",
-    "day10-b": "npx tsc && node day-10/day10-b.js"
+    "day10-b": "npx tsc && node day-10/day10-b.js",
+    "day11-a": "npx tsc && node day-11/a.js",
+    "day11-b": "npx tsc && node day-11/b.js"
   },
   "author": "",
   "license": "ISC",

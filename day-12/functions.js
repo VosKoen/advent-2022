@@ -151,7 +151,7 @@ function selectPathToProcess() {
 }
 function getQuickestGroundLevel(elevationMap, noOfStepsMap) {
     const coordinates = getAllCoordinatesForElevation(elevationMap, 0);
-    return coordinates.reduce((acc, val) => (noOfStepsMap[acc[0]][acc[1]] <= noOfStepsMap[val[0]][val[1]] ? acc : val));
+    return coordinates.reduce((acc, val) => noOfStepsMap[acc[0]][acc[1]] <= noOfStepsMap[val[0]][val[1]] ? acc : val);
 }
 function getAllCoordinatesForElevation(elevationMap, desiredElevation) {
     const returnArray = [];

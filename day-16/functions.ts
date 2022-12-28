@@ -24,17 +24,17 @@ export async function runB() {
     node.valveId,
     findPathsToNode(nodes, node.valveId),
   ]);
-
-  const log = processSteps(
-    nodes,
-    valves,
-    shortestPaths,
-    "AA",
-    26,
-    0,
-    [[30, "AA", 0, 0]],
+  const human = {
+    nextTarget: "AA",
+    stepsToNextTarget: 0,
+  };
+  const elephant = {
+    nextTarget: "AA",
+    stepsToNextTarget: 0,
+  };
+  console.log(
+    processElephantSteps(nodes, valves, shortestPaths, 26, 0, human, elephant)
   );
-  console.log(log);
 }
 
 type Valve = {
@@ -70,14 +70,13 @@ async function getParsedInput(): Promise<Valve[]> {
       return parsedLine;
     })
     .map((line: string[]): Valve => {
-      const valve = {
+      return {
         id: line[0],
         flowRate: parseInt(line[1], 10),
         valves: line.slice(2),
         explored: [],
         isClosed: true,
       };
-      return valve;
     });
 }
 
@@ -200,31 +199,228 @@ function processNode(
   });
 }
 
+type Agent = {
+  stepsToNextTarget: number;
+  nextTarget: string;
+};
+
+function processElephantSteps(
+  nodes: Node[],
+  valves: Valve[],
+  shortestPaths: [string, [string, number][]][],
+  stepsLeft: number,
+  pressureReleasedStart: number,
+  originalHuman: Agent,
+  originalElephant: Agent,
+  history: (number | string)[][] = []
+): [number, (number | string)[][]] {
+  const newHistory = [...history];
+  const valvesToProcess = [...valves].map((valve) => Object.assign({}, valve));
+
+  const pressureFlow = valvesToProcess
+    .filter((valve) => !valve.isClosed)
+    .reduce((acc, val) => acc + val.flowRate, 0);
+  const pressureReleased = pressureReleasedStart + pressureFlow;
+
+  if (stepsLeft <= 0) {
+    newHistory.push([stepsLeft, pressureFlow, pressureReleased]);
+    return [pressureReleased, newHistory];
+  }
+  // If we deviate too much from the best performer, return 0
+  if (maxResults[stepsLeft] > pressureReleased + 50) {
+    return [0, newHistory];
+  }
+  if (maxResults[stepsLeft] < pressureReleased) {
+    maxResults[stepsLeft] = pressureReleased;
+  }
+
+  const closedValves = valvesToProcess.filter(
+    (valve) => valve.isClosed && valve.flowRate > 0
+  );
+
+  if (closedValves.length <= 0) {
+    newHistory.push([stepsLeft, pressureFlow, pressureReleased]);
+    return [pressureReleased + pressureFlow * stepsLeft, newHistory];
+  }
+
+  const human = {
+    stepsToNextTarget: Math.max(originalHuman.stepsToNextTarget - 1, 0),
+    nextTarget: originalHuman.nextTarget,
+  };
+  const elephant = {
+    stepsToNextTarget: Math.max(originalElephant.stepsToNextTarget - 1, 0),
+    nextTarget: originalElephant.nextTarget,
+  };
+
+  let renewHumanTarget = false;
+  let renewElephantTarget = false;
+
+  if (human.stepsToNextTarget === 0) {
+    renewHumanTarget = true;
+    if (
+      valvesToProcess.find(
+        (valve) => valve.id === human.nextTarget && valve.isClosed
+      )
+    ) {
+      // Open the valve
+      const valveToOpen = valvesToProcess.find(
+        (valve) => valve.id === human.nextTarget
+      ) as Valve;
+      valveToOpen.isClosed = false;
+      newHistory.push([stepsLeft, pressureFlow, pressureReleased, valveToOpen.id, 'By Human']);
+    }
+  }
+
+  if (elephant.stepsToNextTarget === 0) {
+    renewElephantTarget = true;
+    if (
+      closedValves.find(
+        (valve) => valve.id === elephant.nextTarget && valve.isClosed
+      )
+    ) {
+      // Open the valve
+      const valveToOpen = valvesToProcess.find(
+        (valve) => valve.id === elephant.nextTarget
+      ) as Valve;
+      valveToOpen.isClosed = false;
+      newHistory.push([stepsLeft, pressureFlow, pressureReleased, valveToOpen.id, 'By Elephant']);
+    }
+  }
+
+  if (renewElephantTarget || renewHumanTarget) {
+    const humans: Agent[] = [];
+    const elephants: Agent[] = [];
+    if (
+      renewHumanTarget &&
+      valvesToProcess.filter((valve) => valve.isClosed && valve.flowRate > 0)
+        .length >= 1
+    ) {
+      valvesToProcess
+        .filter((valve) => valve.isClosed && valve.flowRate > 0)
+        .forEach((valve) => {
+          humans.push({
+            nextTarget: valve.id,
+            stepsToNextTarget:
+              distanceBetweenNodes(shortestPaths, human.nextTarget, valve.id) +
+              1,
+          });
+        });
+    } else {
+      humans.push(human);
+    }
+    if (
+      renewElephantTarget &&
+      valvesToProcess.filter((valve) => valve.isClosed && valve.flowRate > 0)
+        .length >= 1
+    ) {
+      valvesToProcess
+        .filter((valve) => valve.isClosed && valve.flowRate > 0)
+        .forEach((valve) => {
+          elephants.push({
+            nextTarget: valve.id,
+            stepsToNextTarget:
+              distanceBetweenNodes(
+                shortestPaths,
+                elephant.nextTarget,
+                valve.id
+              ) + 1,
+          });
+        });
+    } else {
+      elephants.push(elephant);
+    }
+    return humans
+      .map((possibleHuman) =>
+        elephants
+          .map((possibleElephant) =>
+            processElephantSteps(
+              nodes,
+              valvesToProcess,
+              shortestPaths,
+              stepsLeft - 1,
+              pressureReleased,
+              possibleHuman,
+              possibleElephant,
+              newHistory
+            )
+          )
+          .reduce(
+            (
+              acc: [number, (string | number)[][]],
+              val: [number, (string | number)[][]]
+            ) => {
+              if (acc[0] > val[0]) {
+                return acc;
+              }
+              return val;
+            },
+            [0, []]
+          )
+      )
+      .reduce(
+        (
+          acc: [number, (string | number)[][]],
+          val: [number, (string | number)[][]]
+        ) => {
+          if (acc[0] > val[0]) {
+            return acc;
+          }
+          return val;
+        },
+        [0, []]
+      );
+  }
+  return processElephantSteps(
+    nodes,
+    valvesToProcess,
+    shortestPaths,
+    stepsLeft - 1,
+    pressureReleased,
+    human,
+    elephant,
+    newHistory
+  );
+}
+
+function distanceBetweenNodes(
+  shortestPaths: [string, [string, number][]][],
+  nodeA: string,
+  nodeB: string
+): number {
+  return (
+    (
+      shortestPaths.find(
+        (shortestPathsForNode) => shortestPathsForNode[0] === nodeA
+      ) as [string, [string, number][]]
+    )[1].find((shortestPath) => shortestPath[0] === nodeB) as [string, number]
+  )[1];
+}
+
 function processSteps(
   nodes: Node[],
-  originalValves: Valve[],
+  valves: Valve[],
   shortestPaths: [string, [string, number][]][],
   currentValveId: string,
   stepsLeft: number,
   pressureReleasedStart: number,
-  history: [number, string, number, number][],
+  history: [number, string, number, number][]
 ): [number, [number, string, number, number][]] {
-  const valves = [...originalValves].map((valve) => Object.assign({}, valve));
   const pressureFlow = valves
     .filter((valve) => !valve.isClosed)
     .reduce((acc, val) => acc + val.flowRate, 0);
   const pressureReleased = pressureReleasedStart + pressureFlow;
 
   // If we deviate too much from the best performer, return 0
-  if (maxResults[stepsLeft] > pressureReleased + 50) {
+  if (maxResults[stepsLeft] > pressureReleased + 40) {
     return [0, history];
   }
   if (maxResults[stepsLeft] < pressureReleased) {
     maxResults[stepsLeft] = pressureReleased;
   }
 
-  const potentialNodesToVisit = valves
-    .filter((valve) => valve.isClosed && valve.flowRate > 0);
+  const potentialNodesToVisit = valves.filter(
+    (valve) => valve.isClosed && valve.flowRate > 0
+  );
 
   if (potentialNodesToVisit.length === 0) {
     const newHistory = [...history];
@@ -251,10 +447,10 @@ function processSteps(
         const valvesToProcess = [...valves].map((valve) =>
           Object.assign({}, valve)
         );
-        const valveToClose = valvesToProcess.find(
+        const valveToOpen = valvesToProcess.find(
           (valve) => valve.id === potentialNode.id
         ) as Valve;
-        valveToClose.isClosed = false;
+        valveToOpen.isClosed = false;
         const newHistory = [...history];
         newHistory.push([
           stepsLeft - 1,
@@ -324,18 +520,13 @@ function processSteps(
       );
     }
   );
-  const maxPressureRelease = pressurePossibilities.reduce((acc, val) => {
+  return pressurePossibilities.reduce((acc, val) => {
     if (acc[0] > val[0]) {
       return acc;
     }
     return val;
   });
-  return maxPressureRelease;
 }
-
-// function calculatePressurePossibilities() {
-//
-// }
 
 function determineNextNode(
   nodes: Node[],

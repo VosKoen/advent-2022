@@ -1,4 +1,5 @@
 import parseInput from "../common/parseInput";
+import {pathToFileURL} from "url";
 
 export async function runA() {
   const inputArray = await parseInput(__dirname + "/input");
@@ -22,11 +23,49 @@ export async function runA() {
     }
   }
   console.log(determineHeight(columns));
-  // console.log(columns.map(column => column.filter(value => value < 30)));
 }
 
 export async function runB() {
   const inputArray = await parseInput(__dirname + "/input");
+  const heightIncrease: number[] = [];
+  const jets = inputArray[0].split("");
+  const columns: number[][] = [[0], [0], [0], [0], [0], [0], [0]];
+  const heights: number[] = [];
+  for (let i = 0; i < 10000; i++) {
+    const originalHeight = determineHeight(columns);
+    if (i % 5 === 0) {
+      dropRock(columns, rock1, jets);
+    }
+    if (i % 5 === 1) {
+      dropRock(columns, rock2, jets);
+    }
+    if (i % 5 === 2) {
+      dropRock(columns, rock3, jets);
+    }
+    if (i % 5 === 3) {
+      dropRock(columns, rock4, jets);
+    }
+    if (i % 5 === 4) {
+      dropRock(columns, rock5, jets);
+    }
+    heights.push(determineHeight(columns));
+    heightIncrease.push(heights[heights.length-1]-originalHeight);
+  }
+
+  const repetitions: number[] = [];
+  for(let i = 2000; i<6500; i++) {
+    const patternToFind = heightIncrease.slice(2000, i+1);
+    const shouldMatch = heightIncrease.slice(i+1, i+2+(i-2000));
+    if(patternToFind.join('') === shouldMatch.join('')) {
+      repetitions.push(i);
+    }
+  }
+  const patternLength = repetitions[repetitions.length-1] - repetitions[repetitions.length-2];
+  const lastOccurance = repetitions[repetitions.length-1];
+
+  const remainder = (1000000000000 - lastOccurance) % patternLength;
+  const heightTotal = Math.floor((1000000000000 - lastOccurance)/patternLength)*(heights[lastOccurance] - heights[lastOccurance-patternLength]) + heights[lastOccurance+remainder] - 1;
+  console.log(heightTotal);
 }
 
 // Rocks defined by coordinates from intersection leftmost and bottommost edges

@@ -112,10 +112,6 @@ function runB() {
         }
         let previousMap = [...stackOfRows].concat(initialMap, [...stackOfRows]);
         for (let i = 0; i < 99999999; i++) {
-            if (i % 100 === 0) {
-                console.log(previousMap);
-                console.log(i);
-            }
             const newMap = new Array(previousMap.length)
                 .fill(".")
                 .map((element) => new Array(previousMap[0].length).fill("."));
